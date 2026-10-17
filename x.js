@@ -1,8 +1,5 @@
 
 (() => {
-    if (navigator.webdriver) {
-    location.href = 'https://webhook.site/67909b69-79e2-46cd-8eb1-bf3cbfddac04?stage=selenium_loaded';
-    }
     // Only run on the Scoreboard
     if (location.pathname !== '/') return;
 
